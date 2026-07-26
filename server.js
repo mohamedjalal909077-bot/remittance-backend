@@ -4,38 +4,24 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// جلب المتغيرات من البيئة
+// الاتصال بـ Supabase من خلال المتغيرات
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
-// إنشاء العميل بشكل آمن بدون كراش
-let supabase = null;
-if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
-}
-
-// الصفحة الرئيسية
+// 1. Root Check
 app.get('/', (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Remittance Backend Server is Running Successfully on Vercel! 🚀'
-  });
+  res.json({ status: 'success', message: 'Remittance API Service Running 🚀' });
 });
 
-// مسار الاختبار
-app.get('/api/test', async (req, res) => {
+// 2. جلب جميع التحويلات
+app.get('/api/remittances', async (req, res) => {
   try {
-    if (!supabase) {
-      return res.status(500).json({ 
-        status: 'error', 
-        message: 'Supabase credentials are missing in Vercel Environment Variables!' 
-      });
-    }
-    const { data, error } = await supabase.from('remittances').select('*').limit(5);
+    if (!supabase) throw new Error('Supabase configuration missing');
+    const { data, error } = await supabase.from('remittances').select('*');
     if (error) throw error;
     res.json({ status: 'success', data });
   } catch (err) {
@@ -43,9 +29,17 @@ app.get('/api/test', async (req, res) => {
   }
 });
 
-module.exports = app;
+// 3. إضافة تحويل جديد
+app.post('/api/remittances', async (req, res) => {
+  try {
+    if (!supabase) throw new Error('Supabase configuration missing');
+    const newRemittance = req.body;
+    const { data, error } = await supabase.from('remittances').insert([newRemittance]).select();
+    if (error) throw error;
+    res.status(201).json({ status: 'success', data });
+  } catch (err) {
+    res.status(400).json({ status: 'error', message: err.message });
+  }
+});
 
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}
+module.exports = app;
