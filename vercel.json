@@ -11,5 +11,10 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "SUPABASE_URL": "https://nwfsikdfnfzmsvsddwtj.supabase.co",
+    "SUPABASE_KEY": "Sb_publishable_whhHgtm-kuoa5LmVRBJ3Pw_I7Nw-ZQ7",
+    "PORT": "3000"
+  }
 }
