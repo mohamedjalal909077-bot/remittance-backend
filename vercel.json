@@ -1,44 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const { createClient } = require('@supabase/supabase-js');
-
-const app = express();
-
-// إعدادات Middleware
-app.use(cors());
-app.use(express.json());
-
-// الاتصال بـ Supabase
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-// مسار رئيسي لاختبار السيرفر
-app.get('/', (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Remittance Backend Server is Running Successfully on Vercel! 🚀'
-  });
-});
-
-// مسار اختبار الاتصال بقاعدة البيانات
-app.get('/api/test', async (req, res) => {
-  try {
-    const { data, error } = await supabase.from('remittances').select('*').limit(5);
-    if (error) throw error;
-    res.json({ status: 'success', data });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-});
-
-// تصدير التطبيق لـ Vercel Serverless (مهم جداً للعمل بدون كراش)
-module.exports = app;
-
-// تشغيل السيرفر في البيئة المحلية فقط
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/server.js"
+    }
+  ]
 }
